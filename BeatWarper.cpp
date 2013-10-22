@@ -5,7 +5,11 @@
 // Ugen argument positions
 #define BUFFER 0
 #define LENGTH 1
-#define SLICE_OFFSET 2
+#define FADE_IN 2
+#define FADE_OUT 3
+#define SLICE_LENGTH 4
+
+#define SLICE_OFFSET 5
 
 
 static InterfaceTable *ft;
@@ -16,7 +20,13 @@ struct BeatWarper : public Unit
 {
 	uint32 warpPos;		// position in warper - at destination tempo
 	uint32 bufferPos;	// position in buffer
+
 	int prevSlice; 		// current slice number
+	int numSlices; 		// number of slices
+
+	bool fadingIn, fadingOut; 	// whether a fade in/out is in progress
+	int fadeInPos, fadeOutPos; 	// how far through fade in/out we are
+	uint32 fadeOutBufferPos; 	// buffer position that last fade out started
 
 	// buffer storage - utilised by the GET_BUF_SHARED macro
 	SndBuf *m_buf;
@@ -40,6 +50,8 @@ void BeatWarper_Ctor(BeatWarper* unit)
 	unit->prevSlice = 0;
 	unit->bufferPos = 0;
 
+	unit->numSlices = unit->mNumInputs - SLICE_OFFSET;
+
     // calculate one sample of output - every ugen needs to do this
 	BeatWarper_next_a(unit, 1);
 }
@@ -48,31 +60,38 @@ void BeatWarper_Ctor(BeatWarper* unit)
 // calculation function for an audio rate frequency argument
 void BeatWarper_next_a(BeatWarper *unit, int inNumSamples)
 {
-	// read in length ugen arg 
+	// read in length ugen arg at control rate
     int length = (int)(IN0(LENGTH) * SAMPLERATE); 	
 
-	// calculate number of slices from number of ugen args
-	int numSlices = unit->mNumInputs - SLICE_OFFSET; 	
+	int fadeInTime = (int)(IN0(FADE_IN) * length);
+	int fadeOutTime = (int)(IN0(FADE_OUT) * length);
+
+	// apparently taking reciprocal and multiplying is quicker than dividing 
+	// so we do this for length here
+	double lengthRecip = 1.0f / length; 	
+
+	// lookup current position, number of slices from unit
+	uint32 warpPos = unit->warpPos;
+	int prevSlice = unit->prevSlice;
+	int numSlices = unit->numSlices;
 
 	// load buffer
 	GET_BUF_SHARED
 	
-	// check the buffer has loaded
+	// check the buffer has loaded if not return
 	if (!bufData || ((bufFrames & ((unit->mWorld->mBufLength<<1) - 1)) != 0)) {
 		unit->bufferPos = 0;
 		ClearUnitOutputs(unit, inNumSamples);
+		printf("ERROR: Buffer not available");
 		return;
 	}
 
-	// check num outputs is same as buffers channels
+	// check num outputs is same as buffers channels if not return
 	if (unit->mNumOutputs != bufChannels) { 
 		ClearUnitOutputs(unit, inNumSamples); 
+		printf("ERROR: Channel outputs != Buffer outputs")
 		return; 
 	} 
-
-	// lookup current position from unit
-	uint32 warpPos = unit->warpPos;
-	int prevSlice = unit->prevSlice;
 
 	// TODO fix wonkiness when shorter buffer loaded!!!
 	if (unit->bufferPos >= bufFrames) {
@@ -83,17 +102,18 @@ void BeatWarper_next_a(BeatWarper *unit, int inNumSamples)
 	uint32 bufferPos = unit->bufferPos;
 	bufData += bufferPos * bufChannels;
 
+	int slice = 0;
+
     // perform a loop for the number of samples in the control period
     for (int i=0; i < inNumSamples; ++i) {
 		// calculate current slice number
-		int slice = warpPos / length * numSlices;
-
+		slice = warpPos * lengthRecip * numSlices;
+		
 		// if the slice has changed
 		if(prevSlice != slice) { 	
 			// jump to that slice's position
 			bufferPos = IN0(slice + SLICE_OFFSET) * bufFrames;
 			prevSlice = slice;
-			printf("%i\n", slice);
 		}
 
         // write the output for each channel in the buffer and shift the
@@ -103,7 +123,7 @@ void BeatWarper_next_a(BeatWarper *unit, int inNumSamples)
 			OUT(c)[i] = *bufData++;
 		}
 
-		// TODO Interpolate here alse?
+		// TODO Interpolate here also?
 		bufferPos = (bufferPos + 1) % bufFrames;
 		warpPos = (warpPos + 1) % length;
     }

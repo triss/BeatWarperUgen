@@ -1,6 +1,16 @@
-MyCounter : MultiOutUGen {
-	*ar { arg numChannels, bufnum, length = 1, slices, mul = 1, add = 0;
-		^this.multiNew('audio', numChannels, bufnum, length, *slices).madd(mul, add);
+BeatWarper : MultiOutUGen {
+	*ar { 
+		arg numChannels, bufnum, length = 1, 
+		slices, sliceLength = 1, 
+		fadeIn = 10, fadeOut = 10, 
+		mul = 1, add = 0;
+
+		^this.multiNew(
+			'audio', numChannels, bufnum, 
+			length, sliceLength, 
+			fadeIn, fadeOut, 
+			*slices
+		).madd(mul, add);
 	}
 
 	init { arg numChannels ... theInputs;
