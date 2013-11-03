@@ -64,5 +64,9 @@ returns:: (describe returnvalue here)
 EXAMPLES::
 
 code::
-(some example code)
+
+b = Buffer.read(s, "/home/me/myLoop.wav");
+
+// play half the file at twice its origanal speed using sixteen slices
+x = { BeatWarper.ar(2, b.bufnum, b.duration / 4, 1, (0..15) / 31) }.play;
 ::
