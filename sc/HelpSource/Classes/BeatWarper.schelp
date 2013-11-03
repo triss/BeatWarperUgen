@@ -1,0 +1,68 @@
+TITLE:: BeatWarper
+summary:: A UGen for time-stretching buffers with out affecting its pitch. It particularily suits rhythmic material but can be used creatively with buffers containing other types of material.
+categories:: UGens>Buffer, UGens>Granulator
+related:: Classes/SomeRelatedClass, Reference/SomeRelatedStuff, etc.
+
+DESCRIPTION::
+(put long description here)
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: numChannels
+Number of output channels.
+
+ARGUMENT:: bufnum
+The index of the buffer to use.
+
+ARGUMENT:: length
+The amount of time to stretch the sample over in seconds.
+
+ARGUMENT:: rate
+1.0 is normal, 2.0 is one octave up, 0.5 is one octave down. Negative rates are currently not supported.
+
+ARGUMENT:: slices
+An array containing the position of each slice as a fraction, 0 is the beginning of the buffer, 0.5 is half way through 1.0 is the very end of file.
+
+ARGUMENT:: sliceLength
+The proportion of the slice to play. 1.0 is the whole slice 0.1 is 1/10th of each slice, 0.5 is half of each slice.
+
+ARGUMENT:: fadeIn
+The number of samples to fade each slice in for.
+
+ARGUMENT:: fadeOut
+The number of samples to fade each slice out for.
+
+ARGUMENT:: mul
+Output will be multiplied by this value.
+
+ARGUMENT:: add
+This value will be added to the output.
+
+
+INSTANCEMETHODS::
+
+METHOD:: argNamesInputsOffset
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: numChannels
+(describe argument here)
+
+ARGUMENT::  ... theInputs
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::
