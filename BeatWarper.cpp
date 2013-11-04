@@ -3,8 +3,6 @@
 
 using namespace std; // for math functions
 
-
-
 static InterfaceTable *ft;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,9 +96,12 @@ void BeatWarper_Ctor(BeatWarper* unit)
 
 	unit->numSlices = unit->mNumInputs - SLICE_OFFSET;
 
-    // calculate one sample of output - every ugen needs to do this
-    // the bufferisn't likely tobe ready it seems sowe'll just output a
-	// sample of silence
+	unit->m_fbufnum = -1e9f;
+    
+	// calculate one sample of output - every ugen needs to do this
+    // (I don't think) the buffer isn't likely to be ready it seems so 
+	// we'll just output a sample of silence as seems to be the standard
+	// with buffer using UGens
 	ClearUnitOutputs(unit, 1);
 }
 
@@ -192,6 +193,7 @@ void BeatWarper_next_a(BeatWarper *unit, int inNumSamples)
 			fadeAmt = pow(slicePos / fadeInSamples, 4);
 		}
 
+		// if we're fading out
 		if(slicePos >= sliceLengthSamples - fadeOutSamples) {
 			fadeAmt	= 1.0 - pow(fadeOutPos / fadeOutSamples, 4);
 
@@ -245,13 +247,12 @@ void BeatWarper_next_a(BeatWarper *unit, int inNumSamples)
 			slicePos = 0.;
 		}
 
-
 		warpPos = (warpPos + 1) % warpedLength;
     }
 
 	RELEASE_SNDBUF_SHARED(buf);
 
-    // store the phase back to the struct so we can look it up next cycle
+    // store everything back to the struct so we can look it up next cycle
     unit->warpPos = warpPos;
 	unit->phase = phase;
 	unit->slicePos = slicePos;
