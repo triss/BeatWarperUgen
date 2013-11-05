@@ -1,0 +1,25 @@
+To install you'll require gcc, cmake and copy of the SuperCollider source somewhere on your machine.
+
+First cd into the folder containing this README.
+
+Next create a build directory:
+
+mkdir build
+
+And cd into that:
+
+cd build
+
+Create make files by running cmake and pointing it at you're SuperCollider source directory:
+
+cmake -DSC_PATH=/path/to/my/supercollider/source ..
+
+Build the unit generator with:
+
+make
+
+On OS X copy the generated BeatWarper.scx file to your SuperCollider Extensions folder. On Linux copy the generated BeatWarper.so to your server plugins folder.
+
+Next copy the contents of the sc folder included with this file to your SuperCollider extensions folder.
+
+Start SuperCollider and take a look at the documentation for the BeatWarper Ugen.
