@@ -4,8 +4,7 @@ categories:: UGens>Buffer, UGens>Granulator
 related:: Classes/SomeRelatedClass, Reference/SomeRelatedStuff, etc.
 
 DESCRIPTION::
-(put long description here)
-
+A UGen for time-stretching buffers with out affecting its pitch. It particularily suits rhythmic material but can be used creatively with buffers containing other types of material.
 
 CLASSMETHODS::
 
@@ -24,7 +23,7 @@ ARGUMENT:: rate
 1.0 is normal, 2.0 is one octave up, 0.5 is one octave down. Negative rates are currently not supported.
 
 ARGUMENT:: slices
-An array containing the position of each slice as a fraction, 0 is the beginning of the buffer, 0.5 is half way through 1.0 is the very end of file.
+An array containing the position of each slice as a fraction, 0 is the beginning of the buffer, 0.5 is half way through 1.0 is the very end of buffer.
 
 ARGUMENT:: sliceLength
 The proportion of the slice to play. 1.0 is the whole slice 0.1 is 1/10th of each slice, 0.5 is half of each slice.
@@ -42,31 +41,47 @@ ARGUMENT:: add
 This value will be added to the output.
 
 
-INSTANCEMETHODS::
-
-METHOD:: argNamesInputsOffset
-(describe method here)
-
-returns:: (describe returnvalue here)
-
-METHOD:: init
-(describe method here)
-
-ARGUMENT:: numChannels
-(describe argument here)
-
-ARGUMENT::  ... theInputs
-(describe argument here)
-
-returns:: (describe returnvalue here)
-
-
 EXAMPLES::
 
 code::
-
+// load up a loop
 b = Buffer.read(s, "/home/me/myLoop.wav");
 
-// play half the file at twice its origanal speed using sixteen slices
-x = { BeatWarper.ar(2, b.bufnum, b.duration / 4, 1, (0..15) / 31) }.play;
+// play the buffer at twice its origanal speed using eight slices
+x = { BeatWarper.ar(b.numChannels, b.bufnum, b.duration / 2, 1, (0..7) / 8) }.play;
+x.free;
+
+// play the buffer at twice its origanal speed using 16 slices
+x = { BeatWarper.ar(b.numChannels, b.bufnum, b.duration / 2, 1, (0..15) / 16) }.play;
+x.free;
+
+// play half the buffer at twice its origanal speed using sixteen slices
+x = { BeatWarper.ar(b.numChannels, b.bufnum, b.duration / 4, 1, (0..15) / 31) }.play;
+x.free;
+
+// play half the buffer at twice its origanal speed using eight slices
+x = { BeatWarper.ar(b.numChannels, b.bufnum, b.duration / 4, 1, (0..7) / 16) }.play;
+x.free;
+
+// play the buffer at half its origanal speed using eight slices and silencing latter 
+// half of each slice and applying long fade to end of eachi slice
+(
+	x = { 
+		BeatWarper.ar(b.numChannels, b.bufnum, b.duration * 2, 1, (0..7) / 16, 0.5, 10, 500) 
+	}.play;
+)
+x.free;
+
+// play scrambled version of buffer at half its origanal speed using eight slices and 
+// silencing latter half of each slice and applying long fade to end of each slice
+(
+	x = { 
+		BeatWarper.ar(
+			b.numChannels, b.bufnum, b.duration * 2, 
+			1, (0..7).scramble / 16, 0.5, 10, 500
+		) 
+	}.play;
+)
+x.free;
+
 ::
